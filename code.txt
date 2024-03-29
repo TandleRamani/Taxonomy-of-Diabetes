@@ -1,0 +1,110 @@
+#numpy
+import numpy as np
+
+#pandas
+import pandas as pd
+
+#matplotlib
+import matplotlib.pyplot as plt
+
+#seaborn
+import seaborn as sns
+
+import os
+
+import warnings
+warnings.filterwarnings('ignore')
+pwd
+df= pd.read_csv("/content/sample_data/diabetes.csv")
+df.head()
+df.tail()
+df.sample(5)
+f,ax=plt.subplots(1,2,figsize=(10,5))
+df['Outcome'].value_counts().plot.pie(explode=[0,0.1],autopct ='%1.1f%%',ax=ax[0],shadow=True)
+ax[0].set_title('Outcome')
+ax[0].set_ylabel('')
+
+ax[1].set_title('Outcome')
+N,P = df['Outcome'].value_counts()
+print('Negative(0):',N)
+print('positive(1):',P)
+plt.grid()
+plt.show()
+df.hist(bins=10,figsize=(10,10))
+plt.show()
+from pandas.plotting import scatter_matrix
+scatter_matrix(df,figsize = (20,20));
+sns.pairplot(data=df,hue = 'Outcome')
+plt.show()
+import seaborn as sns
+corrmat = df.corr()
+top_corr_features = corrmat.index
+plt.figure(figsize=(10,10))
+g=sns.heatmap(df[top_corr_features].corr(),annot = True,cmap = "RdYlGn")
+target_name = 'Outcome'
+y=df[target_name]
+x=df.drop(target_name,axis=1)
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+scaler.fit(x)
+SSX = scaler.transform(x)
+from sklearn.model_selection import train_test_split
+x_train,x_test,y_train,y_test = train_test_split(SSX,y, test_size = 0.2,random_state =7)
+#randomForest and support vector machine
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
+rf_classifier= RandomForestClassifier()
+svm_classifier = SVC(kernel='linear', random_state=42)
+rf_classifier.fit(x_train, y_train)
+svm_classifier.fit(x_train, y_train)
+rf_predictions = rf_classifier.predict(x_test)
+svm_predictions =svm_classifier.predict(x_test)
+combined_predictions_2= np.round((rf_predictions + svm_predictions) / 2)
+from sklearn.metrics import accuracy_score
+accuracy_4= accuracy_score(y_test, combined_predictions_2)
+print("Combined Accuracy of randomforest and svm:", accuracy_4*100)
+#decision tree and support vector machine
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import VotingClassifier
+dt_classifier = DecisionTreeClassifier(random_state=42)
+svm_classifier = SVC(kernel='linear', random_state=42)
+ensemble_classifier = VotingClassifier(estimators=[('svm', svm_classifier), ('dt', dt_classifier)])
+ensemble_classifier.fit(x_train, y_train)
+ensemble_predictions = ensemble_classifier.predict(x_test)
+accuracy_1= accuracy_score(y_test, ensemble_predictions)
+print("Ensemble Accuracy of decisiontree and svm:", accuracy_1*100)
+#random forest and decision tree
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import VotingClassifier
+rf_classifier = RandomForestClassifier(n_estimators=100, random_state=42)
+dt_classifier = DecisionTreeClassifier(random_state=42)
+ensemble_classifier = VotingClassifier(estimators=[('rf', rf_classifier), ('dt', dt_classifier)])
+ensemble_classifier.fit(x_train, y_train)
+ensemble_predictions = ensemble_classifier.predict(x_test)
+accuracy_2= accuracy_score(y_test, ensemble_predictions)
+print("Ensemble Accuracy of decisiontree and rf:", accuracy_2*100)
+#random forest and gradient boosting
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+rf_classifier= RandomForestClassifier()
+gb_classifier =GradientBoostingClassifier()
+rf_classifier.fit(x_train, y_train)
+gb_classifier.fit(x_train, y_train)
+rf_predictions = rf_classifier.predict(x_test)
+gb_predictions = gb_classifier.predict(x_test)
+combined_predictions_1= np.round((rf_predictions + gb_predictions) / 2)
+from sklearn.metrics import accuracy_score
+accuracy_3= accuracy_score(y_test, combined_predictions_1)
+print("Combined Accuracy of randomforest and gradientBoosting:", accuracy_3*100)
+import matplotlib.pyplot as plt
+classifiers = ['rf & dt','dt &svm ','rf&svm','rf &gb']
+accuracies = [accuracy_2,accuracy_1,accuracy_4,accuracy_3]
+
+plt.bar(classifiers, accuracies)
+plt.xlabel('Classifiers')
+plt.ylabel('Accuracy')
+plt.title('Accuracy of Ensemble Classifier')
+plt.ylim(0, 1)
+plt.show()
+
